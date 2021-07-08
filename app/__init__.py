@@ -21,8 +21,11 @@ def create_app():
     login.init_app(app)
 
     # 引入蓝图并注册
-    from app.routes import main_routes
+    from app.main.routes import main_routes
     app.register_blueprint(main_routes)
+
+    from app.auth.routes import auth_routes
+    app.register_blueprint(auth_routes)
 
     return app
 
