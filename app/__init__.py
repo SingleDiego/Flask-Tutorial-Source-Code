@@ -5,6 +5,11 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_login import LoginManager
 
+import os
+import logging
+from logging.handlers import RotatingFileHandler
+
+
 db = SQLAlchemy()
 migrate = Migrate()
 login = LoginManager()
@@ -19,6 +24,23 @@ def create_app():
     db.init_app(app)
     migrate.init_app(app, db)
     login.init_app(app)
+
+    # 日志设定
+    if not app.debug:
+        if not os.path.exists('logs'):
+            os.mkdir('logs')
+
+        app.logger.setLevel(logging.INFO)
+        handler = RotatingFileHandler(
+            'logs/microblog.log',
+            maxBytes=10240, 
+            backupCount=10
+        )
+        handler.setLevel(logging.INFO)
+        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        handler.setFormatter(formatter)
+        app.logger.addHandler(handler)
+        app.logger.info("Microblog startup!")
 
     # 引入蓝图并注册
     from app.main.routes import main_routes
