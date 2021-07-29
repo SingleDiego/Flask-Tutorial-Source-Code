@@ -1,9 +1,11 @@
+from datetime import datetime
 from flask import (
     render_template, 
     flash, 
     redirect,
     url_for,
-    request
+    request,
+    current_app
 )
 from flask_login import (
     login_user, 
@@ -17,9 +19,15 @@ from app.auth.forms import (
     EditProfileForm
 )
 from app import db
-from app.models import User
+from app.models import User, Post
 from app.auth import auth_routes
 
+
+@auth_routes.before_request
+def before_request():
+    if current_user.is_authenticated:
+        current_user.last_seen = datetime.utcnow()
+        db.session.commit()
 
 @auth_routes.route('/login', methods=['GET', 'POST'])
 def login():
@@ -60,11 +68,25 @@ def register():
 @login_required
 def user(username):
     user = User.query.filter_by(username=username).first_or_404()
-    posts = [
-        {'author': user, 'body': 'Test post #1'},
-        {'author': user, 'body': 'Test post #2'}
-    ]
-    return render_template('auth/user.html', user=user, posts=posts)
+    page = request.args.get('page', 1, type=int)
+    posts_per_page = current_app.config['POSTS_PER_PAGE']
+    posts = user.posts.order_by(Post.timestamp.desc()).paginate(
+        page, 
+        posts_per_page, 
+        False
+    )
+    next_url = url_for('auth.user', username=user.username, page=posts.next_num) \
+        if posts.has_next else None
+    prev_url = url_for('auth.user', username=user.username, page=posts.prev_num) \
+        if posts.has_prev else None
+
+    return render_template(
+        'auth/user.html', 
+        user=user, 
+        posts=posts.items,
+        next_url=next_url,
+        prev_url=prev_url
+    )
 
 @auth_routes.route('/edit_profile', methods=['GET', 'POST'])
 @login_required
