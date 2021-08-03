@@ -6,6 +6,7 @@ from flask_migrate import Migrate
 from flask_login import LoginManager
 from flask_mail import Mail
 from flask_bootstrap import Bootstrap
+from flask_moment import Moment
 
 import os
 import logging
@@ -16,6 +17,7 @@ db = SQLAlchemy()
 migrate = Migrate()
 mail = Mail()
 bootstrap = Bootstrap()
+moment = Moment()
 
 login = LoginManager()
 login.login_view = "auth.login"
@@ -33,7 +35,8 @@ def create_app(config):
     login.init_app(app)
     mail.init_app(app)
     bootstrap.init_app(app)
-
+    moment.init_app(app)
+    
     # 日志设定
     if not app.debug:
         if not os.path.exists('logs'):
