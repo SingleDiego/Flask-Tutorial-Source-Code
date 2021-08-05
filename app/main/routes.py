@@ -1,18 +1,27 @@
+from datetime import datetime
 from flask import (
     render_template, 
     flash,
     redirect,
     url_for,
     request,
-    current_app
+    current_app,
+    g
 )
 from flask_login import current_user, login_required
 from app import db
 from app.models import Post
-from app.main import main_routes
 from app.main.forms import PostForm
-from flask_babel import _
+from flask_babel import _, get_locale
+from app.main import main_routes
 
+@main_routes.before_app_request
+def before_app_request():
+    if str(get_locale()) == 'zh':
+        local = 'zh-CN'
+    else:
+        local = 'en'
+    g.locale = local
 
 @main_routes.route('/', methods=['GET', 'POST'])
 @main_routes.route('/index', methods=['GET', 'POST'])

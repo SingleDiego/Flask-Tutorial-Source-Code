@@ -31,12 +31,6 @@ from app.auth import auth_routes
 
 @auth_routes.before_request
 def before_request():
-    if str(get_locale()) == 'zh':
-        local = 'zh-CN'
-    else:
-        local = 'en'
-    g.locale = local
-
     if current_user.is_authenticated:
         current_user.last_seen = datetime.utcnow()
         db.session.commit()
